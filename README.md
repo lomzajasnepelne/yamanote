@@ -19,6 +19,17 @@ First things to get to work to achieve PoC stage
   - simulated home client device - a virtual machine sending HTTP requests
 - Make them all controllable via an independent debug network interface
 
+## Prerequisites
+To run yamanote you need a Linux machine with docker and docker-compose. All the necessary tools will be downloaded during the development environment image build.
+
+The startup script assumes that you have sudoless docker.
+
+## Setup
+To start development environment run:
+```
+$ . source.me
+```
+
 ## License
 
 This project is licensed under [GPLv3](LICENSE)

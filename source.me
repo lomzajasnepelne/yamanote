@@ -1,0 +1,8 @@
+start_devenv () {
+  local repo_root=$(realpath $(dirname ${BASH_SOURCE[0]}))
+  local cont_name="yamanote-dev"
+  docker-compose -f devenv/compose.yaml up -d --build || return 1
+  docker exec -it $cont_name /bin/bash || return 1
+}
+
+start_devenv

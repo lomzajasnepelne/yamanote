@@ -1,0 +1,13 @@
+services:
+  devenv:
+    container_name: yamanote-dev
+    hostname: yamanote-dev
+    pull_policy: never
+    build: .
+    network_mode: none
+    tty: true
+    stdin_open: true
+    entrypoint: /bin/bash
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ..:/root/yamanote
