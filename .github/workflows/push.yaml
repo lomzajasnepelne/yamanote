@@ -1,0 +1,16 @@
+name: push CI
+
+on: push
+
+jobs:
+
+  start-environment:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+
+    - name: source
+      run: YAMANOTE_COMMAND=":" . source.me
