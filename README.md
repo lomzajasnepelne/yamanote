@@ -1,3 +1,5 @@
+![CI status](https://github.com/lomzajasnepelne/yamanote/actions/workflows/push.yaml/badge.svg)
+
 # Yamanote: automate network setup
 
 Simulate and test custom network setup for your (home) lab. Deploy it to your routers and servers.
