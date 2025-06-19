@@ -1,6 +1,7 @@
 pub mod l1;
 
-pub struct NodeId(u64);
+#[derive(Eq, Hash, PartialEq, Clone, Copy)]
+pub struct NodeId(pub u64);
 
 pub enum NodeSendError {
     TargetNodeIdUnknown,

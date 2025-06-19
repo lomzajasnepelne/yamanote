@@ -1,27 +1,9 @@
-mod node;
-mod nodelike;
 mod dummy_l1;
+mod node;
+mod sim;
+mod transparent_aether;
 
-trait Aether<'a> {
-    fn new(nodes: &[&'a dyn nodelike::Nodelike]) -> Self;
-    fn step(&self);
-}
-
-struct TransparentAether<'a> {
-    nodes: Vec<&'a dyn nodelike::Nodelike>,
-}
-
-impl<'a> Aether<'a> for TransparentAether<'a> {
-    fn new(nodes: &[&'a dyn nodelike::Nodelike]) -> Self {
-        TransparentAether {
-            nodes: nodes.to_vec(),
-        }
-    }
-
-    fn step(&self) {
-        ()
-    }
-}
+use sim::nodelike;
 
 fn main() {
     println!("Creating the simulation");
@@ -33,7 +15,4 @@ fn main() {
         .iter()
         .map(|n| n as &dyn nodelike::Nodelike)
         .collect();
-    let sim = TransparentAether::new(&nodes);
-    println!("Advancing the simulation by 1 step");
-    sim.step();
 }
