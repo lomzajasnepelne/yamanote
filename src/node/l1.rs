@@ -1,7 +1,9 @@
+#[derive(Debug)]
 pub enum SendToL1Error {
     BufferFull,
 }
 
+#[derive(Debug)]
 pub enum ReceiveFromL1Error {
     BufferEmpty,
 }

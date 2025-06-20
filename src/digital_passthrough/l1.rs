@@ -1,0 +1,62 @@
+use crate::digital_passthrough::frontend;
+use crate::node;
+
+struct L1 {
+    bufs: frontend::Buffers,
+}
+
+impl L1 {
+    fn new(bufs: &frontend::Buffers) -> Self {
+        L1 {
+            bufs: frontend::Buffers::clone(bufs),
+        }
+    }
+}
+
+impl node::l1::L1 for L1 {
+    fn send_to_l1(&mut self, b: &[u8]) -> Result<(), node::l1::SendToL1Error> {
+        self.bufs.l1_to_aeth.borrow_mut().extend(b);
+        Ok(())
+    }
+
+    fn receive_from_l1<'a>(
+        &mut self,
+        b: &'a mut [u8],
+    ) -> Result<&'a [u8], node::l1::ReceiveFromL1Error> {
+        let mut aeth_to_l1 = self.bufs.aeth_to_l1.borrow_mut();
+        let to_copy = std::cmp::min(b.len(), aeth_to_l1.len());
+        for i in 0..to_copy {
+            b[i] = aeth_to_l1.pop_front().unwrap();
+        }
+        Ok(&b[..to_copy])
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn send_to_l1_writes_to_l1_to_aether_buf() {
+        let bufs = frontend::Buffers::new();
+        let mut l1 = L1::new(&bufs);
+        node::l1::L1::send_to_l1(&mut l1, &vec![1, 2]).unwrap();
+        node::l1::L1::send_to_l1(&mut l1, &vec![3, 4]).unwrap();
+        bufs.l1_to_aeth.borrow_mut().make_contiguous();
+        assert_eq!(bufs.l1_to_aeth.borrow().as_slices().0, [1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn receive_from_l1_reads_from_aeth_to_l1_buf() {
+        let bufs = frontend::Buffers::new();
+        let mut l1 = L1::new(&bufs);
+        bufs.aeth_to_l1.borrow_mut().extend([1, 2, 3, 4]);
+        let mut rx_buf = [0 as u8; 2];
+        let rx = node::l1::L1::receive_from_l1(&mut l1, &mut rx_buf).unwrap();
+        assert_eq!(rx, [1, 2]);
+        let rx = node::l1::L1::receive_from_l1(&mut l1, &mut rx_buf).unwrap();
+        assert_eq!(rx, [3, 4]);
+        let rx = node::l1::L1::receive_from_l1(&mut l1, &mut rx_buf).unwrap();
+        assert_eq!(rx, []);
+    }
+}
