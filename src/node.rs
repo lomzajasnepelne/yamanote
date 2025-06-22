@@ -1,25 +1,82 @@
+use std::{
+    sync::{Arc, Mutex},
+    thread,
+};
+
+mod node;
+
 pub mod l1;
+pub mod sys;
 
-#[derive(Eq, Hash, PartialEq, Clone, Copy)]
-pub struct NodeId(pub u64);
-
-pub enum NodeSendError {
-    TargetNodeIdUnknown,
-    SendFailed,
+pub struct NodeHandle {
+    abort: Arc<Mutex<bool>>,
+    handle: Option<thread::JoinHandle<()>>,
 }
 
-pub enum NodeReceiveError {
-    TargetNodeIdUnknown,
-    ReceiveFailed,
-    NoData,
+impl NodeHandle {
+    pub fn create(
+        layer1: impl l1::L1 + Send + 'static,
+        system: impl sys::Sys + Send + 'static,
+    ) -> Self {
+        let abort = Arc::new(Mutex::new(false));
+        let abort_move = Arc::clone(&abort);
+        let handle = thread::spawn(move || {
+            node::run(abort_move, layer1, system);
+        });
+        NodeHandle {
+            abort,
+            handle: Some(handle),
+        }
+    }
 }
 
-pub struct Node<T: l1::L1> {
-    layer1: T,
+impl Drop for NodeHandle {
+    fn drop(&mut self) {
+        *self.abort.lock().unwrap() = true;
+        self.handle.take().unwrap().join().unwrap();
+    }
 }
 
-impl<T: l1::L1> Node<T> {
-    pub fn new(layer1: T) -> Self {
-        Node { layer1 }
+#[cfg(test)]
+mod tests {
+    use std::time;
+
+    use super::*;
+
+    struct DummyL1;
+
+    impl l1::L1 for DummyL1 {
+        fn send_to_l1(&mut self, _: &[u8]) -> Result<(), l1::SendToL1Error> {
+            Ok(())
+        }
+
+        fn receive_from_l1<'a>(
+            &mut self,
+            _: &'a mut [u8],
+        ) -> Result<&'a [u8], l1::ReceiveFromL1Error> {
+            Ok(&[])
+        }
+    }
+
+    struct DummySys;
+
+    impl sys::Sys for DummySys {
+        fn lockstep_start(&mut self) -> sys::ShouldExit {
+            false
+        }
+
+        fn lockstep_end(&mut self) {}
+
+        fn get_time_mono(&self) -> time::Duration {
+            time::Duration::ZERO
+        }
+    }
+
+    #[test]
+    fn create_and_drop_does_not_panic() {
+        let dummy_l1 = DummyL1;
+        let dummy_sys = DummySys;
+        let node = NodeHandle::create(dummy_l1, dummy_sys);
+        std::mem::drop(node);
     }
 }

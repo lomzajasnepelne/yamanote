@@ -1,11 +1,12 @@
 #[derive(Debug)]
 pub enum SendToL1Error {
     BufferFull,
+    IoError,
 }
 
 #[derive(Debug)]
 pub enum ReceiveFromL1Error {
-    BufferEmpty,
+    IoError,
 }
 
 pub trait L1 {

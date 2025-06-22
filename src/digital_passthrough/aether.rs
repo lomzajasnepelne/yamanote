@@ -1,6 +1,6 @@
 use crate::digital_passthrough::frontend;
 
-struct Aether {
+pub struct Aether {
     nodes_bufs: Vec<frontend::Buffers>,
 }
 
@@ -17,17 +17,19 @@ impl Aether {
 
     pub fn propagate(&self) {
         for (i, bufs) in self.nodes_bufs.iter().enumerate() {
-            let mut l1_to_aeth = bufs.l1_to_aeth.borrow_mut();
+            let mut l1_to_aeth = bufs.l1_to_aeth.write().unwrap();
             for (_, target) in
                 self.nodes_bufs.iter().enumerate().filter(|(j, _)| i != *j)
             {
                 target
                     .aeth_to_l1
-                    .borrow_mut()
+                    .write()
+                    .unwrap()
                     .extend(l1_to_aeth.as_slices().0);
                 target
                     .aeth_to_l1
-                    .borrow_mut()
+                    .write()
+                    .unwrap()
                     .extend(l1_to_aeth.as_slices().1);
             }
             l1_to_aeth.clear();
@@ -44,10 +46,21 @@ mod tests {
         let mut aeth = Aether::new();
         let sender_frontend = frontend::Buffers::new();
         aeth.register_node(&sender_frontend);
-        sender_frontend.l1_to_aeth.borrow_mut().extend([1, 2, 3, 4]);
+        sender_frontend
+            .l1_to_aeth
+            .write()
+            .unwrap()
+            .extend([1, 2, 3, 4]);
         aeth.propagate();
-        sender_frontend.l1_to_aeth.borrow_mut().make_contiguous();
-        assert_eq!(sender_frontend.l1_to_aeth.borrow().as_slices().0, []);
+        sender_frontend
+            .l1_to_aeth
+            .write()
+            .unwrap()
+            .make_contiguous();
+        assert_eq!(
+            sender_frontend.l1_to_aeth.read().unwrap().as_slices().0,
+            []
+        );
     }
 
     #[test]
@@ -59,24 +72,47 @@ mod tests {
         aeth.register_node(&sender_frontend);
         aeth.register_node(&receiver_one_frontend);
         aeth.register_node(&receiver_two_frontend);
-        sender_frontend.l1_to_aeth.borrow_mut().extend([1, 2, 3, 4]);
+        sender_frontend
+            .l1_to_aeth
+            .write()
+            .unwrap()
+            .extend([1, 2, 3, 4]);
         aeth.propagate();
-        sender_frontend.aeth_to_l1.borrow_mut().make_contiguous();
+        sender_frontend
+            .aeth_to_l1
+            .write()
+            .unwrap()
+            .make_contiguous();
         receiver_one_frontend
             .aeth_to_l1
-            .borrow_mut()
+            .write()
+            .unwrap()
             .make_contiguous();
         receiver_two_frontend
             .aeth_to_l1
-            .borrow_mut()
+            .write()
+            .unwrap()
             .make_contiguous();
-        assert_eq!(sender_frontend.aeth_to_l1.borrow().as_slices().0, []);
         assert_eq!(
-            receiver_one_frontend.aeth_to_l1.borrow().as_slices().0,
+            sender_frontend.aeth_to_l1.read().unwrap().as_slices().0,
+            []
+        );
+        assert_eq!(
+            receiver_one_frontend
+                .aeth_to_l1
+                .read()
+                .unwrap()
+                .as_slices()
+                .0,
             [1, 2, 3, 4]
         );
         assert_eq!(
-            receiver_two_frontend.aeth_to_l1.borrow().as_slices().0,
+            receiver_two_frontend
+                .aeth_to_l1
+                .read()
+                .unwrap()
+                .as_slices()
+                .0,
             [1, 2, 3, 4]
         );
     }
