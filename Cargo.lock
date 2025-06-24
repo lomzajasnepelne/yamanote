@@ -3,5 +3,20 @@
 version = 4
 
 [[package]]
-name = "yamanote"
+name = "tests"
 version = "0.1.0"
+dependencies = [
+ "yamanote-node",
+ "yamanote-sim",
+]
+
+[[package]]
+name = "yamanote-node"
+version = "0.1.0"
+
+[[package]]
+name = "yamanote-sim"
+version = "0.1.0"
+dependencies = [
+ "yamanote-node",
+]

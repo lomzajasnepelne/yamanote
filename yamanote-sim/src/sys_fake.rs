@@ -1,6 +1,6 @@
 use std::{sync::mpsc, time};
 
-use crate::node::{self, sys};
+use yamanote_node::sys;
 
 pub use crate::sys_fake::ctl::{StepParams, SysFakeCtl};
 
@@ -25,16 +25,16 @@ impl SysFake {
     }
 }
 
-impl node::sys::Sys for SysFake {
+impl sys::Sys for SysFake {
     fn lockstep_start(&mut self) -> sys::ShouldExit {
         let run_command = self.run.recv().unwrap();
         match run_command {
-            comm::StepCommand::Exit => return true,
+            comm::StepCommand::Exit => true,
             comm::StepCommand::Run(params) => {
                 self.step_params = params;
-                return false;
+                false
             }
-        };
+        }
     }
 
     fn lockstep_end(&mut self) {
@@ -66,7 +66,7 @@ mod tests {
     fn lockstep_start_after_stop_node_returns_true() {
         let (mut fake, mut ctl) = create_sys_fake();
         ctl.stop_node();
-        assert!(node::sys::Sys::lockstep_start(&mut fake));
+        assert!(sys::Sys::lockstep_start(&mut fake));
     }
 
     #[test]
@@ -74,8 +74,8 @@ mod tests {
         let (mut fake, mut ctl) = create_sys_fake();
         let exp_time = time::Duration::from_micros(123);
         ctl.step_run(StepParams { time: exp_time });
-        assert!(!node::sys::Sys::lockstep_start(&mut fake));
-        assert_eq!(node::sys::Sys::get_time_mono(&mut fake), exp_time);
+        assert!(!sys::Sys::lockstep_start(&mut fake));
+        assert_eq!(sys::Sys::get_time_mono(&mut fake), exp_time);
     }
 
     #[test]
@@ -84,7 +84,7 @@ mod tests {
         ctl.step_run(StepParams {
             time: time::Duration::from_micros(123),
         });
-        node::sys::Sys::lockstep_end(&mut fake);
+        sys::Sys::lockstep_end(&mut fake);
         ctl.step_join();
     }
 }

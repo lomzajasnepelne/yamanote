@@ -11,7 +11,7 @@ pub fn create_l1() -> (l1::L1, frontend::Buffers) {
 
 #[cfg(test)]
 mod tests {
-    use crate::node::l1::L1 as node_L1;
+    use yamanote_node::l1::L1 as node_L1;
 
     use super::*;
 

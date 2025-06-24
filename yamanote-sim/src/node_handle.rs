@@ -3,10 +3,7 @@ use std::{
     thread,
 };
 
-mod node;
-
-pub mod l1;
-pub mod sys;
+use yamanote_node::{l1, sys, run};
 
 pub struct NodeHandle {
     abort: Arc<Mutex<bool>>,
@@ -21,7 +18,7 @@ impl NodeHandle {
         let abort = Arc::new(Mutex::new(false));
         let abort_move = Arc::clone(&abort);
         let handle = thread::spawn(move || {
-            node::run(abort_move, layer1, system);
+            run(abort_move, layer1, system);
         });
         NodeHandle {
             abort,
@@ -46,7 +43,10 @@ mod tests {
     struct DummyL1;
 
     impl l1::L1 for DummyL1 {
-        fn send_to_l1(&mut self, _: &[u8]) -> Result<(), l1::SendToL1Error> {
+        fn send_to_l1(
+            &mut self,
+            _: &[u8],
+        ) -> Result<(), l1::SendToL1Error> {
             Ok(())
         }
 

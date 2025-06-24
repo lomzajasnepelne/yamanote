@@ -1,20 +1,18 @@
 use std::time;
 
-mod digital_passthrough;
-mod node;
-mod sys_fake;
+use yamanote_sim::{digital_passthrough, node_handle, sys_fake};
 
 fn create_node(
     aeth: &mut digital_passthrough::Aether,
-) -> (node::NodeHandle, sys_fake::SysFakeCtl) {
+) -> (node_handle::NodeHandle, sys_fake::SysFakeCtl) {
     let (l1, bufs) = digital_passthrough::create_l1();
     aeth.register_node(&bufs);
     let (fake, ctl) = sys_fake::create_sys_fake();
-    let n = node::NodeHandle::create(l1, fake);
+    let n = node_handle::NodeHandle::create(l1, fake);
     (n, ctl)
 }
 
-fn destroy_node(_node: node::NodeHandle, _ctl: sys_fake::SysFakeCtl) {}
+fn destroy_node(_node: node_handle::NodeHandle, _ctl: sys_fake::SysFakeCtl) {}
 
 fn sim_step(
     ctls: &mut [&mut sys_fake::SysFakeCtl],
@@ -29,7 +27,8 @@ fn sim_step(
     aeth.propagate();
 }
 
-fn main() {
+#[test]
+fn test_run_sim() {
     println!("Creating the simulation");
     let mut aeth = digital_passthrough::Aether::new();
     let (node_a, mut ctl_a) = create_node(&mut aeth);
