@@ -24,3 +24,31 @@ pub fn run(
         sys.lockstep_end();
     }
 }
+
+#[cfg(test)]
+pub mod mock;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::mock::mock_l1;
+
+    #[test]
+    fn run_and_exit_via_lockstep() {
+        let l1 = mock_l1::MockL1::new();
+        let mut sys = sys::MockSys::new();
+        let abort = Arc::new(Mutex::new(false));
+        sys.expect_lockstep_start().return_const(true);
+        run(Arc::clone(&abort), l1, sys);
+    }
+
+    #[test]
+    fn run_and_abort() {
+        let l1 = mock_l1::MockL1::new();
+        let mut sys = sys::MockSys::new();
+        let abort = Arc::new(Mutex::new(true));
+        sys.expect_lockstep_start().return_const(false);
+        run(Arc::clone(&abort), l1, sys);
+    }
+}
