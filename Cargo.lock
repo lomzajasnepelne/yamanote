@@ -135,6 +135,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "yamanote-node-rp4"
+version = "0.1.0"
+dependencies = [
+ "yamanote-node",
+]
+
+[[package]]
 name = "yamanote-sim"
 version = "0.1.0"
 dependencies = [

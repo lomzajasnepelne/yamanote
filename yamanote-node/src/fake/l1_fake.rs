@@ -146,9 +146,15 @@ mod tests {
         let mut fake = L1Fake::new();
         fake.set_to_be_received_from_l1(&[1, 2, 3, 4]);
         let mut buf = [0; 2];
-        assert_eq!(l1::L1::receive_from_l1(&mut fake, &mut buf).unwrap(), [1, 2]);
+        assert_eq!(
+            l1::L1::receive_from_l1(&mut fake, &mut buf).unwrap(),
+            [1, 2]
+        );
         assert_eq!(buf, [1, 2]);
-        assert_eq!(l1::L1::receive_from_l1(&mut fake, &mut buf).unwrap(), [3, 4]);
+        assert_eq!(
+            l1::L1::receive_from_l1(&mut fake, &mut buf).unwrap(),
+            [3, 4]
+        );
         assert_eq!(buf, [3, 4]);
         buf = [0, 0];
         assert_eq!(l1::L1::receive_from_l1(&mut fake, &mut buf).unwrap(), []);
