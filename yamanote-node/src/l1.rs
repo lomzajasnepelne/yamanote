@@ -1,10 +1,10 @@
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SendToL1Error {
     BufferFull,
     IoError,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ReceiveFromL1Error {
     IoError,
 }

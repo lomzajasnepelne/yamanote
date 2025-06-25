@@ -3,7 +3,7 @@ use std::{
     thread,
 };
 
-use yamanote_node::{l1, sys, run};
+use yamanote_node::{l1, run, sys};
 
 pub struct NodeHandle {
     abort: Arc<Mutex<bool>>,
@@ -43,10 +43,7 @@ mod tests {
     struct DummyL1;
 
     impl l1::L1 for DummyL1 {
-        fn send_to_l1(
-            &mut self,
-            _: &[u8],
-        ) -> Result<(), l1::SendToL1Error> {
+        fn send_to_l1(&mut self, _: &[u8]) -> Result<(), l1::SendToL1Error> {
             Ok(())
         }
 

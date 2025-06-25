@@ -26,17 +26,17 @@ pub fn run(
 }
 
 #[cfg(test)]
-pub mod mock;
+pub mod fake;
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    use crate::mock::mock_l1;
+    use crate::fake::l1_fake;
 
     #[test]
     fn run_and_exit_via_lockstep() {
-        let l1 = mock_l1::MockL1::new();
+        let l1 = l1_fake::L1Fake::new();
         let mut sys = sys::MockSys::new();
         let abort = Arc::new(Mutex::new(false));
         sys.expect_lockstep_start().return_const(true);
@@ -45,7 +45,7 @@ mod tests {
 
     #[test]
     fn run_and_abort() {
-        let l1 = mock_l1::MockL1::new();
+        let l1 = l1_fake::L1Fake::new();
         let mut sys = sys::MockSys::new();
         let abort = Arc::new(Mutex::new(true));
         sys.expect_lockstep_start().return_const(false);
