@@ -75,7 +75,7 @@ mod tests {
         let exp_time = time::Duration::from_micros(123);
         ctl.step_run(StepParams { time: exp_time });
         assert!(!sys::Sys::lockstep_start(&mut fake));
-        assert_eq!(sys::Sys::get_time_mono(&mut fake), exp_time);
+        assert_eq!(sys::Sys::get_time_mono(&fake), exp_time);
     }
 
     #[test]

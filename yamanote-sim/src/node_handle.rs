@@ -11,12 +11,14 @@ use yamanote_node::{l1, run, sys};
 pub struct NodeHandle {
     abort: Arc<AtomicBool>,
     handle: Option<thread::JoinHandle<()>>,
+    sim_node_id: u64,
 }
 
 impl NodeHandle {
     pub fn create(
         layer1: impl l1::L1 + Send + 'static,
         system: impl sys::Sys + Send + 'static,
+        sim_node_id: u64,
     ) -> Self {
         let abort = Arc::new(AtomicBool::new(false));
         let abort_move = Arc::clone(&abort);
@@ -26,7 +28,12 @@ impl NodeHandle {
         NodeHandle {
             abort,
             handle: Some(handle),
+            sim_node_id,
         }
+    }
+
+    pub fn sim_node_id(&self) -> u64 {
+        self.sim_node_id
     }
 }
 
@@ -76,7 +83,7 @@ mod tests {
     fn create_and_drop_does_not_panic() {
         let dummy_l1 = DummyL1;
         let dummy_sys = DummySys;
-        let node = NodeHandle::create(dummy_l1, dummy_sys);
+        let node = NodeHandle::create(dummy_l1, dummy_sys, 0);
         std::mem::drop(node);
     }
 }
