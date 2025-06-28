@@ -1,5 +1,8 @@
 use std::{
-    sync::{Arc, Mutex},
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
     thread, time,
 };
 
@@ -54,11 +57,11 @@ impl yamanote_node::sys::Sys for Sys {
 fn main() {
     let l1 = L1::new();
     let sys = Sys::new();
-    let abort = Arc::new(Mutex::new(false));
+    let abort = Arc::new(AtomicBool::new(false));
     let abort_move = Arc::clone(&abort);
     let handle = thread::spawn(move || {
         yamanote_node::run(abort_move, l1, sys);
     });
-    *abort.lock().unwrap() = true;
+    abort.store(true, Ordering::Relaxed);
     handle.join().unwrap();
 }

@@ -1,12 +1,15 @@
 use std::{
-    sync::{Arc, Mutex},
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
     thread,
 };
 
 use yamanote_node::{l1, run, sys};
 
 pub struct NodeHandle {
-    abort: Arc<Mutex<bool>>,
+    abort: Arc<AtomicBool>,
     handle: Option<thread::JoinHandle<()>>,
 }
 
@@ -15,7 +18,7 @@ impl NodeHandle {
         layer1: impl l1::L1 + Send + 'static,
         system: impl sys::Sys + Send + 'static,
     ) -> Self {
-        let abort = Arc::new(Mutex::new(false));
+        let abort = Arc::new(AtomicBool::new(false));
         let abort_move = Arc::clone(&abort);
         let handle = thread::spawn(move || {
             run(abort_move, layer1, system);
@@ -29,7 +32,7 @@ impl NodeHandle {
 
 impl Drop for NodeHandle {
     fn drop(&mut self) {
-        *self.abort.lock().unwrap() = true;
+        self.abort.store(true, Ordering::Relaxed);
         self.handle.take().unwrap().join().unwrap();
     }
 }
