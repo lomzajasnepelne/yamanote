@@ -17,7 +17,7 @@ impl Aether {
         }
     }
 
-    pub fn register_node(&mut self, bufs: &frontend::Buffers) {
+    pub fn register_l1(&mut self, bufs: &frontend::Buffers) {
         self.nodes_bufs.push(frontend::Buffers::clone(bufs));
     }
 
@@ -51,7 +51,7 @@ mod tests {
     fn propagate_clears_tx_buffer() {
         let mut aeth = Aether::new();
         let sender_frontend = frontend::Buffers::new();
-        aeth.register_node(&sender_frontend);
+        aeth.register_l1(&sender_frontend);
         sender_frontend
             .l1_to_aeth
             .write()
@@ -75,9 +75,9 @@ mod tests {
         let sender_frontend = frontend::Buffers::new();
         let receiver_one_frontend = frontend::Buffers::new();
         let receiver_two_frontend = frontend::Buffers::new();
-        aeth.register_node(&sender_frontend);
-        aeth.register_node(&receiver_one_frontend);
-        aeth.register_node(&receiver_two_frontend);
+        aeth.register_l1(&sender_frontend);
+        aeth.register_l1(&receiver_one_frontend);
+        aeth.register_l1(&receiver_two_frontend);
         sender_frontend
             .l1_to_aeth
             .write()

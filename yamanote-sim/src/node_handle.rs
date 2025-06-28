@@ -10,7 +10,6 @@ use yamanote_node::{l1, run, sys};
 
 pub struct NodeHandle {
     abort: Arc<AtomicBool>,
-    handle: Option<thread::JoinHandle<()>>,
     sim_node_id: u64,
 }
 
@@ -22,14 +21,10 @@ impl NodeHandle {
     ) -> Self {
         let abort = Arc::new(AtomicBool::new(false));
         let abort_move = Arc::clone(&abort);
-        let handle = thread::spawn(move || {
+        thread::spawn(move || {
             run(abort_move, layer1, system);
         });
-        NodeHandle {
-            abort,
-            handle: Some(handle),
-            sim_node_id,
-        }
+        NodeHandle { abort, sim_node_id }
     }
 
     pub fn sim_node_id(&self) -> u64 {
@@ -40,7 +35,6 @@ impl NodeHandle {
 impl Drop for NodeHandle {
     fn drop(&mut self) {
         self.abort.store(true, Ordering::Relaxed);
-        self.handle.take().unwrap().join().unwrap();
     }
 }
 

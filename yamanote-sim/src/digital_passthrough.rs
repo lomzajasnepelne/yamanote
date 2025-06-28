@@ -36,12 +36,12 @@ impl Sim {
 
     pub fn create_node(&mut self) -> NodeHandle {
         let (l1, bufs) = Sim::create_l1();
-        self.aether.register_node(&bufs);
-        let (fake, ctl) = sys_fake::create_sys_fake();
+        self.aether.register_l1(&bufs);
+        let (sys_fake, sys_fake_ctl) = sys_fake::create_sys_fake();
         let node_id = self.last_sim_node_id + 1;
         self.last_sim_node_id = node_id;
-        let n = NodeHandle::create(l1, fake, node_id);
-        self.node_ctls.insert(node_id, ctl);
+        let n = NodeHandle::create(l1, sys_fake, node_id);
+        self.node_ctls.insert(node_id, sys_fake_ctl);
         n
     }
 
@@ -88,8 +88,8 @@ mod tests {
         let mut aeth = aether::Aether::new();
         let (mut sender_l1, sender_frontend) = Sim::create_l1();
         let (mut receiver_l1, receiver_frontend) = Sim::create_l1();
-        aeth.register_node(&sender_frontend);
-        aeth.register_node(&receiver_frontend);
+        aeth.register_l1(&sender_frontend);
+        aeth.register_l1(&receiver_frontend);
         sender_l1.send_to_l1(&[1, 2, 3, 4]).unwrap();
         aeth.propagate();
         let mut buf = [0_u8; 5];
@@ -121,6 +121,13 @@ mod tests {
         let _handle1 = sim.create_node();
         let _handle2 = sim.create_node();
         sim.step();
-        std::mem::drop(sim);
+    }
+
+    #[test]
+    #[should_panic]
+    fn step_panics_when_handle_dropped() {
+        let mut sim = Sim::new();
+        sim.create_node();
+        sim.step();
     }
 }
