@@ -17,11 +17,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Run tests
-      run: cargo test --verbose
+      run: ./run.sh test
+    - name: Run linter and formatter checks
+      run: ./run.sh check
     - name: Cross compile
       run: |
         sudo apt-get update
         sudo apt-get install -y gcc-aarch64-linux-gnu
         rustup target add aarch64-unknown-linux-gnu
-        cargo build -p yamanote-node-rp4 --release --target aarch64-unknown-linux-gnu
-        file target/aarch64-unknown-linux-gnu/release/yamanote-node-rp4
+        ./run.sh build-rp4
