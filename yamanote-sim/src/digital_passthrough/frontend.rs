@@ -8,6 +8,12 @@ pub struct Buffers {
     pub aeth_to_l1: Arc<RwLock<VecDeque<u8>>>,
 }
 
+impl Default for Buffers {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Buffers {
     pub fn new() -> Self {
         Self {

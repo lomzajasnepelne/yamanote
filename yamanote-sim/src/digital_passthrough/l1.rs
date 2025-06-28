@@ -40,8 +40,8 @@ mod tests {
     fn send_to_l1_writes_to_l1_to_aether_buf() {
         let bufs = frontend::Buffers::new();
         let mut l1 = L1::new(&bufs);
-        l1::L1::send_to_l1(&mut l1, &vec![1, 2]).unwrap();
-        l1::L1::send_to_l1(&mut l1, &vec![3, 4]).unwrap();
+        l1::L1::send_to_l1(&mut l1, &[1, 2]).unwrap();
+        l1::L1::send_to_l1(&mut l1, &[3, 4]).unwrap();
         bufs.l1_to_aeth.write().unwrap().make_contiguous();
         assert_eq!(bufs.l1_to_aeth.read().unwrap().as_slices().0, [1, 2, 3, 4]);
     }
@@ -51,7 +51,7 @@ mod tests {
         let bufs = frontend::Buffers::new();
         let mut l1 = L1::new(&bufs);
         bufs.aeth_to_l1.write().unwrap().extend([1, 2, 3, 4]);
-        let mut rx_buf = [0 as u8; 2];
+        let mut rx_buf = [0_u8; 2];
         let rx = l1::L1::receive_from_l1(&mut l1, &mut rx_buf).unwrap();
         assert_eq!(rx, [1, 2]);
         let rx = l1::L1::receive_from_l1(&mut l1, &mut rx_buf).unwrap();

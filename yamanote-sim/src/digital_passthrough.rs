@@ -25,7 +25,7 @@ mod tests {
         aeth.register_node(&receiver_frontend);
         sender_l1.send_to_l1(&[1, 2, 3, 4]).unwrap();
         aeth.propagate();
-        let mut buf = [0 as u8; 5];
+        let mut buf = [0_u8; 5];
         assert_eq!(
             receiver_l1.receive_from_l1(&mut buf).unwrap(),
             [1, 2, 3, 4]

@@ -9,6 +9,12 @@ pub struct L1Fake {
     to_be_received: VecDeque<u8>,
 }
 
+impl Default for L1Fake {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl L1Fake {
     pub fn new() -> Self {
         Self {

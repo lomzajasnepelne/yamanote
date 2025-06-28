@@ -4,6 +4,12 @@ pub struct Aether {
     nodes_bufs: Vec<frontend::Buffers>,
 }
 
+impl Default for Aether {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Aether {
     pub fn new() -> Self {
         Self {
