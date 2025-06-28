@@ -11,6 +11,7 @@ pub struct SysFake {
     run: comm::RunReceiver,
     done: comm::DoneSender,
     step_params: StepParams,
+    should_exit: bool,
 }
 
 impl SysFake {
@@ -21,20 +22,26 @@ impl SysFake {
             step_params: StepParams {
                 time: time::Duration::ZERO,
             },
+            should_exit: false,
         }
     }
 }
 
 impl sys::Sys for SysFake {
-    fn lockstep_start(&mut self) -> sys::ShouldExit {
+    fn lockstep_start(&mut self) {
         let run_command = self.run.recv().unwrap();
         match run_command {
-            comm::StepCommand::Exit => true,
+            comm::StepCommand::Exit => {
+                self.should_exit = true;
+            }
             comm::StepCommand::Run(params) => {
                 self.step_params = params;
-                false
             }
         }
+    }
+
+    fn should_exit(&self) -> bool {
+        self.should_exit
     }
 
     fn lockstep_end(&mut self) {
@@ -66,7 +73,8 @@ mod tests {
     fn lockstep_start_after_stop_node_returns_true() {
         let (mut fake, mut ctl) = create_sys_fake();
         ctl.stop_node();
-        assert!(sys::Sys::lockstep_start(&mut fake));
+        sys::Sys::lockstep_start(&mut fake);
+        assert!(sys::Sys::should_exit(&fake));
     }
 
     #[test]
@@ -74,7 +82,8 @@ mod tests {
         let (mut fake, mut ctl) = create_sys_fake();
         let exp_time = time::Duration::from_micros(123);
         ctl.step_run(StepParams { time: exp_time });
-        assert!(!sys::Sys::lockstep_start(&mut fake));
+        sys::Sys::lockstep_start(&mut fake);
+        assert!(!sys::Sys::should_exit(&fake));
         assert_eq!(sys::Sys::get_time_mono(&fake), exp_time);
     }
 

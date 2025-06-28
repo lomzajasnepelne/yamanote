@@ -1,15 +1,8 @@
-use std::{
-    sync::{
-        Arc,
-        atomic::{AtomicBool, Ordering},
-    },
-    thread,
-};
+use std::thread;
 
 use yamanote_node::{l1, run, sys};
 
 pub struct NodeHandle {
-    abort: Arc<AtomicBool>,
     sim_node_id: u64,
 }
 
@@ -18,13 +11,11 @@ impl NodeHandle {
         layer1: impl l1::L1 + Send + 'static,
         system: impl sys::Sys + Send + 'static,
         sim_node_id: u64,
-    ) -> Self {
-        let abort = Arc::new(AtomicBool::new(false));
-        let abort_move = Arc::clone(&abort);
-        thread::spawn(move || {
-            run(abort_move, layer1, system);
+    ) -> (Self, thread::JoinHandle<()>) {
+        let h = thread::spawn(move || {
+            run(layer1, system);
         });
-        NodeHandle { abort, sim_node_id }
+        (NodeHandle { sim_node_id }, h)
     }
 
     pub fn sim_node_id(&self) -> u64 {
@@ -32,15 +23,15 @@ impl NodeHandle {
     }
 }
 
-impl Drop for NodeHandle {
-    fn drop(&mut self) {
-        self.abort.store(true, Ordering::Relaxed);
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use std::time;
+    use std::{
+        sync::{
+            Arc,
+            atomic::{AtomicBool, Ordering},
+        },
+        time,
+    };
 
     use super::*;
 
@@ -59,11 +50,21 @@ mod tests {
         }
     }
 
-    struct DummySys;
+    struct DummySys {
+        exit_handle: Arc<AtomicBool>,
+    }
+
+    impl DummySys {
+        pub fn new(exit_handle: Arc<AtomicBool>) -> Self {
+            Self { exit_handle }
+        }
+    }
 
     impl sys::Sys for DummySys {
-        fn lockstep_start(&mut self) -> sys::ShouldExit {
-            false
+        fn lockstep_start(&mut self) {}
+
+        fn should_exit(&self) -> bool {
+            self.exit_handle.load(Ordering::Relaxed)
         }
 
         fn lockstep_end(&mut self) {}
@@ -74,10 +75,12 @@ mod tests {
     }
 
     #[test]
-    fn create_and_drop_does_not_panic() {
+    fn create_and_stop_does_not_panic() {
+        let exit_handle = Arc::new(AtomicBool::new(false));
         let dummy_l1 = DummyL1;
-        let dummy_sys = DummySys;
-        let node = NodeHandle::create(dummy_l1, dummy_sys, 0);
-        std::mem::drop(node);
+        let dummy_sys = DummySys::new(Arc::clone(&exit_handle));
+        let (_, jh) = NodeHandle::create(dummy_l1, dummy_sys, 0);
+        exit_handle.store(true, Ordering::Relaxed);
+        jh.join().unwrap();
     }
 }

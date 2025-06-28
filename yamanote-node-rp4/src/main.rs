@@ -32,19 +32,23 @@ impl yamanote_node::l1::L1 for L1 {
 
 struct Sys {
     timer_start: time::Instant,
+    exit_handle: Arc<AtomicBool>,
 }
 
 impl Sys {
-    pub fn new() -> Self {
+    pub fn new(exit_handle: Arc<AtomicBool>) -> Self {
         Sys {
             timer_start: time::Instant::now(),
+            exit_handle,
         }
     }
 }
 
 impl yamanote_node::sys::Sys for Sys {
-    fn lockstep_start(&mut self) -> yamanote_node::sys::ShouldExit {
-        false
+    fn lockstep_start(&mut self) {}
+
+    fn should_exit(&self) -> bool {
+        self.exit_handle.load(Ordering::Relaxed)
     }
 
     fn lockstep_end(&mut self) {}
@@ -55,13 +59,12 @@ impl yamanote_node::sys::Sys for Sys {
 }
 
 fn main() {
+    let exit_handle = Arc::new(AtomicBool::new(false));
     let l1 = L1::new();
-    let sys = Sys::new();
-    let abort = Arc::new(AtomicBool::new(false));
-    let abort_move = Arc::clone(&abort);
+    let sys = Sys::new(Arc::clone(&exit_handle));
     let handle = thread::spawn(move || {
-        yamanote_node::run(abort_move, l1, sys);
+        yamanote_node::run(l1, sys);
     });
-    abort.store(true, Ordering::Relaxed);
+    exit_handle.store(true, Ordering::Relaxed);
     handle.join().unwrap();
 }
