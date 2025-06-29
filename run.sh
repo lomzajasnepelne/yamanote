@@ -11,7 +11,10 @@ fi
 pushd $REPO_ROOT >/dev/null
 
 yamanote_build_rp4 () {
-    cargo build -p yamanote-node-rp4 --release --target aarch64-unknown-linux-gnu
+    cargo build \
+        -p yamanote-node-rp4 \
+        --profile release-lto \
+        --target aarch64-unknown-linux-gnu
 }
 
 yamanote_test () {
