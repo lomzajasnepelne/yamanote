@@ -8,7 +8,7 @@ members = [
     "yamanote-sim"
 ]
 
-# For yamanote-node-rpi4
+# For yamanote-node-rp4
 [profile.release-lto]
 inherits = "release"
 lto = "thin"
