@@ -1,0 +1,28 @@
+name: ci
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run tests
+      run: ./run.sh test
+    - name: Run linter and formatter checks
+      run: ./run.sh check
+    - name: Cross compile
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu
+        rustup target add aarch64-unknown-linux-gnu
+        ./run.sh build-rp4

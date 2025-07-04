@@ -1,0 +1,14 @@
+[workspace]
+resolver = "3"
+members = [
+    "tests",
+    "yamanote-node",
+    "yamanote-node-rp4",
+    "yamanote-proto",
+    "yamanote-sim"
+]
+
+# For yamanote-node-rp4
+[profile.release-lto]
+inherits = "release"
+lto = "thin"

@@ -1,0 +1,15 @@
+message GetMeshInfo {
+    optional uint64 mesh_info_params = 1;
+}
+
+message GetNodeStats {
+    optional uint64 node_stat_params = 1;
+}
+
+message ControlMessage {
+    optional uint64 req_id = 1;
+    oneof msg {
+        GetMeshInfo get_mesh_info = 2;
+        GetNodeStats get_node_stats = 3;
+    }
+}
